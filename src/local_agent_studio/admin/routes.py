@@ -31,6 +31,60 @@ from ..services.prompts import draft_prompt, publish_draft, published_prompt, ro
 PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
 
+PLAYGROUND_ERROR_HELP: dict[str, tuple[str, str | None, str | None]] = {
+    "agent_disabled": ("Agent 当前已停用，请先在系统页重新启用。", "/admin/system", "打开系统设置"),
+    "chat_model_not_ready": (
+        "还没有可用的当前聊天模型。请先启用一个聊天模型并设为当前。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "prompt_not_published": (
+        "还没有已发布的提示词。草稿不会参与回答，请先完成发布。",
+        "/admin/prompts",
+        "前往发布提示词",
+    ),
+    "upstream_http_401": (
+        "模型接口鉴权失败。请重新填写正确的 API Key，再运行连接测试。",
+        "/admin/models",
+        "检查 API Key",
+    ),
+    "upstream_http_402": (
+        "模型账户余额不足，请在模型服务商后台检查余额。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "upstream_http_403": (
+        "模型接口拒绝访问，请检查 API Key 权限和账户状态。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "upstream_http_404": (
+        "没有找到模型接口，请检查 Base URL 和模型名称。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "upstream_http_429": (
+        "模型接口当前限流，请稍后再试或检查服务商额度。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "upstream_timeout": ("模型接口响应超时，请稍后重试。", "/admin/models", "检查模型配置"),
+    "upstream_invalid_response": (
+        "模型接口返回了无法识别的内容，请检查它是否兼容 OpenAI Chat Completions。",
+        "/admin/models",
+        "检查模型配置",
+    ),
+    "empty_response": ("模型返回了空回答，本次没有生成可发送内容。", None, None),
+}
+
+
+def _playground_error(code: str) -> dict[str, str | None]:
+    message, href, label = PLAYGROUND_ERROR_HELP.get(
+        code,
+        ("模型调用失败，本次没有生成回答。", None, None),
+    )
+    return {"code": code, "message": message, "href": href, "label": label}
+
 
 def _redirect(path: str) -> RedirectResponse:
     return RedirectResponse(path, status_code=303)
@@ -241,7 +295,18 @@ def build_admin_router() -> APIRouter:
                 profile.max_concurrency = max_concurrency
                 profile.enabled = True
                 session.add(profile)
-            _flash(request, "模型配置已保存。", "success")
+                session.flush()
+                active_id = session.scalar(
+                    select(ModelProfile.id).where(
+                        ModelProfile.capability == capability,
+                        ModelProfile.enabled.is_(True),
+                        ModelProfile.is_active.is_(True),
+                    )
+                )
+                if active_id is None:
+                    profile.is_active = True
+                    session.add(profile)
+            _flash(request, "模型配置已保存；若这是首个同类模型，已自动设为当前。", "success")
         except Exception as exc:
             _flash(request, f"保存失败：{type(exc).__name__}", "error")
         return _redirect("/admin/models")
@@ -581,7 +646,7 @@ def build_admin_router() -> APIRouter:
                 InferenceMetadata(endpoint="admin.playground", connector_id="local-admin"),
             )
         except InferenceError as exc:
-            error = exc.code
+            error = _playground_error(exc.code)
         return templates.TemplateResponse(
             request=request,
             name="playground.html",

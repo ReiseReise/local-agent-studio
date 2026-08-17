@@ -4,6 +4,7 @@ import json
 
 from sqlalchemy import select
 
+from local_agent_studio.admin.routes import _playground_error
 from local_agent_studio.entities import ModelProfile, PromptVersion
 from local_agent_studio.services.bootstrap import connector_token
 from local_agent_studio.services.prompts import published_prompt
@@ -77,6 +78,8 @@ def test_model_prompt_backup_and_export_do_not_export_secrets(admin_client, app)
         profile = session.scalar(select(ModelProfile).where(ModelProfile.name == "Primary"))
         assert profile is not None
         assert b"highly-sensitive-model-key" not in profile.api_key_secret
+        assert profile.enabled is True
+        assert profile.is_active is True
 
     prompts = admin_client.get("/admin/prompts")
     published = admin_client.post(
@@ -102,3 +105,13 @@ def test_model_prompt_backup_and_export_do_not_export_secrets(admin_client, app)
     assert payload["secrets_included"] is False
     assert "highly-sensitive-model-key" not in exported.text
     assert connector_token(app.state.database, app.state.secret_box) not in exported.text
+
+
+def test_playground_errors_are_actionable_and_keep_diagnostic_code():
+    missing_model = _playground_error("chat_model_not_ready")
+    assert "设为当前" in str(missing_model["message"])
+    assert missing_model["href"] == "/admin/models"
+
+    bad_key = _playground_error("upstream_http_401")
+    assert "API Key" in str(bad_key["message"])
+    assert bad_key["code"] == "upstream_http_401"

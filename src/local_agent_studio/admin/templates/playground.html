@@ -12,7 +12,12 @@
   </form>
   <div class="panel answer-panel">
     <div class="section-title"><span>FINAL ANSWER</span><h2>最终回答</h2></div>
-    {% if error %}<div class="error-block">请求停止：{{ error }}</div>
+    {% if error %}
+      <div class="error-block">
+        <strong>{{ error.message }}</strong>
+        {% if error.href %}<a class="button-link secondary" href="{{ error.href }}">{{ error.label }}</a>{% endif %}
+        <small>错误代码：{{ error.code }}</small>
+      </div>
     {% elif result %}
       <blockquote>{{ result.text }}</blockquote>
       <div class="answer-meta"><span>{{ result.model_name }}</span><span>Prompt v{{ result.prompt_version }}</span><span>{{ result.duration_ms }} ms</span></div>
