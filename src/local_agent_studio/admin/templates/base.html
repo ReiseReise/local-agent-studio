@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Local Agent Studio{% endblock %}</title>
+  <link rel="stylesheet" href="/admin/static/app.css">
+  <script src="/admin/static/app.js" defer></script>
+</head>
+<body class="{% block body_class %}app-shell{% endblock %}">
+  {% if section not in ['setup', 'login'] %}
+  <aside class="rail">
+    <a class="brand" href="/admin" aria-label="Local Agent Studio 首页">
+      <span class="brand-mark">L/A</span>
+      <span><strong>Local Agent</strong><small>STUDIO · LOCALHOST</small></span>
+    </a>
+    <nav class="nav" aria-label="管理导航">
+      <a class="{{ 'active' if section == 'dashboard' else '' }}" href="/admin"><span>01</span>总览</a>
+      <a class="{{ 'active' if section == 'models' else '' }}" href="/admin/models"><span>02</span>模型</a>
+      <a class="{{ 'active' if section == 'prompts' else '' }}" href="/admin/prompts"><span>03</span>提示词</a>
+      <a class="{{ 'active' if section == 'knowledge' else '' }}" href="/admin/knowledge"><span>04</span>知识库</a>
+      <a class="{{ 'active' if section == 'playground' else '' }}" href="/admin/playground"><span>05</span>调试台</a>
+      <a class="{{ 'active' if section == 'integration' else '' }}" href="/admin/integration"><span>06</span>接入配置</a>
+      <a class="{{ 'active' if section == 'system' else '' }}" href="/admin/system"><span>07</span>系统</a>
+    </nav>
+    <div class="rail-footer">
+      <div class="live-dot {{ 'on' if agent_enabled else 'off' }}"><i></i>{{ 'AGENT ON' if agent_enabled else 'AGENT PAUSED' }}</div>
+      <form method="post" action="/admin/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="text-button" type="submit">退出后台</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="{% if section in ['setup', 'login'] %}auth-main{% else %}workspace{% endif %}">
+    {% if section not in ['setup', 'login'] %}
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">PRIVATE CONTROL PLANE</span>
+        <h1>{% block heading %}Local Agent Studio{% endblock %}</h1>
+      </div>
+      <div class="host-stamp"><span>BOUND TO</span><strong>127.0.0.1</strong></div>
+    </header>
+    {% endif %}
+
+    {% if flash %}
+    <div class="flash {{ flash.level }}" role="status">{{ flash.message }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}提示词 · Local Agent Studio{% endblock %}
+{% block heading %}人设与提示词{% endblock %}
+{% block content %}
+<section class="prompt-layout">
+  <form class="panel editor-panel" method="post" action="/admin/prompts/draft">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="section-title inline-title">
+      <div><span>WORKING DRAFT</span><h2>草稿 v{{ draft.version_number if draft else '—' }}</h2></div>
+      <span class="status-chip">不会自动上线</span>
+    </div>
+    <textarea class="prompt-editor" name="content" spellcheck="false" required>{{ draft.content if draft else '' }}</textarea>
+    <label>本次修改说明<input name="change_note" maxlength="500" value="{{ draft.change_note if draft else '' }}" placeholder="例如：缩短开场，补充不知道时转人工"></label>
+    <div class="editor-actions">
+      <button class="secondary" type="submit">保存草稿</button>
+    </div>
+  </form>
+  <aside class="panel publish-panel">
+    <div class="section-title"><span>LIVE VERSION</span><h2>{{ '已发布 v' ~ published.version_number if published else '尚未发布' }}</h2></div>
+    <p>{{ published.change_note if published else '真实接口会保持未就绪，直到你主动发布。' }}</p>
+    <form method="post" action="/admin/prompts/publish" data-confirm="确定发布当前草稿？新的接口请求会立即使用它。">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="primary wide" type="submit">发布当前草稿</button>
+    </form>
+    <div class="rule"></div>
+    <h3>用草稿试问</h3>
+    <form method="post" action="/admin/prompts/test">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>测试问题<textarea name="question" rows="4" required>{{ prompt_test_question or '' }}</textarea></label>
+      <button class="secondary wide" type="submit">仅测试，不发布</button>
+    </form>
+    {% if prompt_test_result %}<div class="draft-test-result"><strong>草稿回答</strong><p>{{ prompt_test_result.text }}</p></div>{% endif %}
+    {% if prompt_test_error %}<div class="error-block">{{ prompt_test_error }}</div>{% endif %}
+    <div class="rule"></div>
+    <h3>发布规则</h3>
+    <ul class="plain-list"><li>草稿可随时保存，不影响线上</li><li>发布后自动生成下一份草稿</li><li>回滚也会创建一个新版本</li></ul>
+  </aside>
+</section>
+
+<section class="panel">
+  <div class="section-title"><span>VERSION LEDGER</span><h2>版本记录</h2></div>
+  <div class="version-table">
+    {% for version in versions %}
+    <div class="version-row">
+      <strong>v{{ version.version_number }}</strong>
+      <span class="status-chip {{ 'ok' if version.state == 'published' else '' }}">{{ version.state }}</span>
+      <p>{{ version.change_note or '无修改说明' }}</p>
+      <time>{{ version.created_at }}</time>
+      {% if version.state != 'draft' %}
+      <form method="post" action="/admin/prompts/{{ version.id }}/rollback" data-confirm="回滚会创建并立即发布一个新版本，继续吗？">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="text-button" type="submit">回滚到此版</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

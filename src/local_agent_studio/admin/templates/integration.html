@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}接入配置 · Local Agent Studio{% endblock %}
+{% block heading %}接入配置{% endblock %}
+{% block content %}
+<section class="integration-hero">
+  <div><span class="eyebrow">OPENAI-COMPATIBLE</span><h2>把它当作一个<br>本机模型接口。</h2><p>外部接入层负责收发消息；Local Agent Studio 只返回一条经过人设和知识库处理的文字。</p></div>
+  <div class="connector-map"><span>CONNECTOR</span><b>→</b><span class="active-node">LOCAL AGENT</span><b>→</b><span>MODEL API</span></div>
+</section>
+<section class="panel connection-card">
+  <div class="config-line"><span>BASE URL</span><code id="base-url">http://127.0.0.1:8765/v1</code><button class="copy-button" data-copy="base-url">复制</button></div>
+  <div class="config-line"><span>MODEL</span><code id="model-id">local-agent-studio</code><button class="copy-button" data-copy="model-id">复制</button></div>
+  <div class="config-line secret-line"><span>API KEY</span><code id="api-key">{{ connector_token or '尚未生成' }}</code><button class="copy-button" data-copy="api-key">复制</button></div>
+</section>
+<section class="two-column integration-notes">
+  <article class="panel">
+    <div class="section-title"><span>SIVER CHECKLIST</span><h2>接入前检查</h2></div>
+    <ol class="number-list"><li>只在 Siver 的接口测试中配置</li><li>清空“接口错误固定回复”</li><li>Siver 提示词只留接入说明</li><li>先在调试台确认模型与知识</li><li>真实微信试运行必须单独确认</li></ol>
+  </article>
+  <article class="panel warning-panel">
+    <div class="section-title"><span>ROTATE CREDENTIAL</span><h2>Token 轮换</h2></div>
+    <p>轮换后，旧 Token 立即失效；需要同步修改所有接入层。此动作不会改变模型 API Key。</p>
+    <form method="post" action="/admin/integration/rotate" data-confirm="确定轮换接入 Token？旧 Token 会立即失效。">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary" type="submit">生成新 Token</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

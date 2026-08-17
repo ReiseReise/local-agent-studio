@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}调试台 · Local Agent Studio{% endblock %}
+{% block heading %}本地调试台{% endblock %}
+{% block content %}
+<section class="playground-grid">
+  <form class="panel question-panel" method="post" action="/admin/playground">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="section-title"><span>NO-SEND TEST</span><h2>问 Agent 一个问题</h2></div>
+    <p class="muted">这里只调用本地 Agent 和你配置的模型，不会进入 Siver，也不会发送微信。</p>
+    <textarea name="question" placeholder="例如：你们的服务适合什么人？" required>{{ question }}</textarea>
+    <button class="primary wide" type="submit">运行一次完整检索与回答</button>
+  </form>
+  <div class="panel answer-panel">
+    <div class="section-title"><span>FINAL ANSWER</span><h2>最终回答</h2></div>
+    {% if error %}<div class="error-block">请求停止：{{ error }}</div>
+    {% elif result %}
+      <blockquote>{{ result.text }}</blockquote>
+      <div class="answer-meta"><span>{{ result.model_name }}</span><span>Prompt v{{ result.prompt_version }}</span><span>{{ result.duration_ms }} ms</span></div>
+    {% else %}<div class="empty-state">运行后，单条纯文本回答会显示在这里。</div>{% endif %}
+  </div>
+</section>
+{% if result %}
+<section class="panel">
+  <div class="section-title inline-title"><div><span>RETRIEVAL TRACE</span><h2>命中的知识片段</h2></div><small>这些内容只在本机展示</small></div>
+  {% if result.retrieved %}
+  <div class="retrieval-list">
+    {% for item in result.retrieved %}
+    <article><div><strong>{{ item.source_title }}</strong><span>{{ '%.3f'|format(item.score) }}</span></div><p>{{ item.text }}</p></article>
+    {% endfor %}
+  </div>
+  {% else %}<div class="empty-state">没有命中知识，回答只使用已发布提示词和当前问题。</div>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

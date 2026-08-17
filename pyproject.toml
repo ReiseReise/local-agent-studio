@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "local-agent-studio"
+version = "0.1.0"
+description = "A local-first, configurable RAG agent with an OpenAI-compatible API and Windows deployment scripts."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Reise" }]
+keywords = ["agent", "rag", "fastapi", "openai-compatible", "windows"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: Microsoft :: Windows :: Windows 11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "alembic>=1.16,<2",
+  "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "itsdangerous>=2.2,<3",
+  "jinja2>=3.1,<4",
+  "llama-index-core>=0.14.23,<0.15",
+  "pypdf>=5.8,<7",
+  "python-docx>=1.2,<2",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0.41,<3",
+  "uvicorn>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4,<9",
+  "pytest-asyncio>=1.1,<2",
+  "pytest-cov>=6.2,<7",
+  "ruff>=0.12,<1",
+]
+
+[project.scripts]
+local-agent-studio = "local_agent_studio.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ReiseReise/local-agent-studio"
+Issues = "https://github.com/ReiseReise/local-agent-studio/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/local_agent_studio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/local_agent_studio/admin/routes.py" = ["B008"]
+"src/local_agent_studio/services/bootstrap.py" = ["S105"]
+"tests/**/*.py" = ["S101", "S104"]

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}首次设置 · Local Agent Studio{% endblock %}
+{% block body_class %}auth-shell{% endblock %}
+{% block content %}
+<section class="auth-card">
+  <div class="auth-intro">
+    <span class="brand-mark large">L/A</span>
+    <p class="eyebrow">FIRST LOCAL BOOT</p>
+    <h1>先把控制权<br>留在这台电脑。</h1>
+    <p>创建后台密码后，系统会在 Windows 本机生成接入 Token。没有默认密码，也不会把任何密钥写进项目目录。</p>
+    <ul class="check-list">
+      <li>只监听 127.0.0.1</li>
+      <li>Windows DPAPI 加密</li>
+      <li>聊天正文不进日志</li>
+    </ul>
+  </div>
+  <form class="auth-form" method="post" action="/admin/setup">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="step-label">01 / CREATE OWNER PASSWORD</div>
+    <label>后台密码
+      <input type="password" name="password" minlength="12" autocomplete="new-password" required>
+      <small>至少12个字符；只用于本机后台。</small>
+    </label>
+    <label>再次输入
+      <input type="password" name="password_confirm" minlength="12" autocomplete="new-password" required>
+    </label>
+    <button class="primary wide" type="submit">完成首次设置 <span>→</span></button>
+  </form>
+</section>
+{% endblock %}

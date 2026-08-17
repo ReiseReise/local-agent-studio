@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}系统 · Local Agent Studio{% endblock %}
+{% block heading %}系统与诊断{% endblock %}
+{% block content %}
+<section class="system-grid">
+  <article class="panel kill-panel">
+    <span class="eyebrow">MASTER SWITCH</span>
+    <h2>{{ 'Agent 正在回答' if agent_enabled else 'Agent 已暂停' }}</h2>
+    <p>关闭后，所有 OpenAI 兼容请求都会明确失败；管理后台和调试配置仍可访问。</p>
+    <form method="post" action="/admin/system/toggle-agent" data-confirm="确定切换 Agent 总开关？">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="{{ 'danger' if agent_enabled else 'primary' }} wide" type="submit">{{ '立即暂停 Agent' if agent_enabled else '重新启用 Agent' }}</button>
+    </form>
+  </article>
+  <article class="panel">
+    <div class="section-title"><span>RUNTIME</span><h2>本机运行信息</h2></div>
+    <dl class="detail-list"><div><dt>环境</dt><dd>{{ settings.environment }}</dd></div><div><dt>监听</dt><dd>{{ settings.host }}:{{ settings.port }}</dd></div><div><dt>数据根</dt><dd>{{ paths.root }}</dd></div><div><dt>数据库</dt><dd>{{ paths.database }}</dd></div></dl>
+  </article>
+</section>
+<section class="panel">
+  <div class="section-title"><span>MAINTENANCE</span><h2>维护工具</h2></div>
+  <div class="maintenance-grid">
+    <form method="post" action="/admin/system/diagnose"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary wide" type="submit">运行本机诊断</button></form>
+    <form method="post" action="/admin/system/backup"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary wide" type="submit">备份数据库</button></form>
+    <a class="secondary wide" href="/admin/system/export">导出可迁移配置</a>
+    <form method="post" action="/admin/system/check-update"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary wide" type="submit">检查公开更新</button></form>
+  </div>
+  <p class="muted">导出包含提示词和知识正文，但永不包含模型密钥或接入 Token；请把导出文件当作私密资料保存。</p>
+</section>
+<section class="panel privacy-panel">
+  <div class="section-title"><span>PRIVACY POSTURE</span><h2>当前隐私边界</h2></div>
+  <div class="privacy-grid"><div><strong>LOCAL ONLY</strong><p>服务不监听局域网和公网。</p></div><div><strong>NO BODY LOGS</strong><p>日志不保存聊天或知识正文。</p></div><div><strong>DPAPI</strong><p>Windows 密钥绑定当前用户。</p></div><div><strong>NO TOOLS</strong><p>首版没有自主外部行动。</p></div></div>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}总览 · Local Agent Studio{% endblock %}
+{% block heading %}运行总览{% endblock %}
+{% block content %}
+<section class="hero-status">
+  <div>
+    <span class="eyebrow">CURRENT POSTURE</span>
+    <p class="status-word">{{ 'READY TO ANSWER' if agent_enabled and chat_model and prompt else 'SETUP REQUIRED' }}</p>
+    <p class="muted">服务在线不等于微信正在发送。真实发送权仍由外部接入层控制。</p>
+  </div>
+  <div class="dial" aria-label="Agent 状态">
+    <span>{{ 'ON' if agent_enabled else 'OFF' }}</span>
+    <small>AGENT</small>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <article class="metric-card">
+    <span class="card-index">A</span><small>ACTIVE CHAT MODEL</small>
+    <strong>{{ chat_model.name if chat_model else '未配置' }}</strong>
+    <p>{{ chat_model.model_name if chat_model else '先到“模型”新增并启用。' }}</p>
+    <a href="/admin/models">管理模型 →</a>
+  </article>
+  <article class="metric-card">
+    <span class="card-index">P</span><small>PUBLISHED PROMPT</small>
+    <strong>{{ 'v' ~ prompt.version_number if prompt else '未发布' }}</strong>
+    <p>{{ prompt.change_note if prompt else '草稿不会进入真实回复。' }}</p>
+    <a href="/admin/prompts">编辑提示词 →</a>
+  </article>
+  <article class="metric-card accent-card">
+    <span class="card-index">K</span><small>KNOWLEDGE SOURCES</small>
+    <strong>{{ ready_count }} / {{ source_count }}</strong>
+    <p>已就绪 / 已启用</p>
+    <a href="/admin/knowledge">更新知识库 →</a>
+  </article>
+</section>
+
+<section class="panel split-panel">
+  <div>
+    <div class="section-title"><span>RECENT REQUESTS</span><h2>最近运行记录</h2></div>
+    {% if traces %}
+    <div class="trace-list">
+      {% for trace in traces %}
+      <div class="trace-row">
+        <span class="status-chip {{ 'ok' if trace.status != 'error' else 'bad' }}">{{ trace.status }}</span>
+        <strong>{{ trace.endpoint }}</strong>
+        <span>{{ trace.duration_ms }} ms</span>
+        <span>{{ trace.output_chars }} 字</span>
+        <time>{{ trace.created_at }}</time>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">还没有请求。先在调试台跑一次，不必连接微信。</div>
+    {% endif %}
+  </div>
+  <aside class="next-step">
+    <span class="eyebrow">SAFE NEXT STEP</span>
+    <h3>先在本地问，<br>再把答案交给接入层。</h3>
+    <p>调试台会显示召回到的知识片段和模型回答，但不会发送到任何聊天窗口。</p>
+    <a class="primary button-link" href="/admin/playground">打开调试台</a>
+  </aside>
+</section>
+{% endblock %}

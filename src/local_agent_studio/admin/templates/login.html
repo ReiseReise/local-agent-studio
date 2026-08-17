@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}登录 · Local Agent Studio{% endblock %}
+{% block body_class %}auth-shell{% endblock %}
+{% block content %}
+<section class="auth-card compact">
+  <div class="auth-intro">
+    <span class="brand-mark large">L/A</span>
+    <p class="eyebrow">LOCAL OWNER ACCESS</p>
+    <h1>欢迎回来。</h1>
+    <p>这里管理模型、人设、知识和接入 Token。页面只在当前电脑可见。</p>
+  </div>
+  <form class="auth-form" method="post" action="/admin/login">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>后台密码
+      <input type="password" name="password" autocomplete="current-password" autofocus required>
+    </label>
+    <button class="primary wide" type="submit">进入 Studio <span>→</span></button>
+  </form>
+</section>
+{% endblock %}
