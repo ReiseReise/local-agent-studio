@@ -74,6 +74,8 @@ def test_model_prompt_backup_and_export_do_not_export_secrets(admin_client, app)
         follow_redirects=True,
     )
     assert "模型配置已保存" in response.text
+    assert "当前模型" in response.text
+    assert ">设为当前</button>" not in response.text
     with app.state.database.session() as session:
         profile = session.scalar(select(ModelProfile).where(ModelProfile.name == "Primary"))
         assert profile is not None

@@ -11,7 +11,7 @@
       <article class="model-row {{ 'active-model' if model.is_active else '' }}">
         <div>
           <span class="status-chip">{{ model.capability }}</span>
-          {% if model.is_active %}<span class="status-chip ok">active</span>{% endif %}
+          {% if model.is_active %}<span class="status-chip ok">当前模型</span>{% endif %}
           {% if not model.enabled %}<span class="status-chip bad">disabled</span>{% endif %}
           <h3>{{ model.name }}</h3>
           <p>{{ model.model_name }} · {{ model.base_url }}</p>
@@ -22,11 +22,13 @@
           <form method="post" action="/admin/models/{{ model.id }}/test">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary" type="submit">连接测试</button>
           </form>
-          <form method="post" action="/admin/models/{{ model.id }}/activate">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="primary" type="submit">设为当前</button>
-          </form>
+          {% if not model.is_active %}
+            <form method="post" action="/admin/models/{{ model.id }}/activate">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="primary" type="submit">设为当前</button>
+            </form>
+          {% endif %}
           <form method="post" action="/admin/models/{{ model.id }}/toggle">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="text-button" type="submit">{{ '停用' if model.enabled else '启用' }}</button>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="{{ 'danger-link' if model.enabled else 'text-button' }}" type="submit">{{ '停用' if model.enabled else '启用' }}</button>
           </form>
         </div>
       </article>
